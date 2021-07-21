@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ajax大量文件上传</title>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.js"></script>
+{#    <script src="/static/js/jquery3.4.1.js"></script>#}
+{#    <script src="/static/js/jquery.cookie.js"></script>#}
+</head>
+<body>
+<form action="/upload_dir/" enctype="multipart/form-data" method="post" id="formUploadDir">
+    {% csrf_token %}
+    <!-- webkitdirectory：设置目录上传，貌似仅支持chrome -->
+{#    <input type="file" name="files" id="uploadDir" webkitdirectory>#}
+    <!-- multiple：允许同时上传多个文件 -->
+    <p>可选择多文件上传</p>
+    <input type="file" name="files" id="uploadDir" multiple>
+{#    <button>form表单上传</button>#}
+</form>
+
+<input type="button" value="ajax提交" id="ajaxUploadDirBtn">点击该按钮后不要退出该网页，直到弹框ok
+
+<!-- multiple：允许同时上传多个文件 -->
+{#<p><input type="file" name="files" id="uoloadfiles" multiple></p>#}
+
+</body>
+<script>
+    $(function () {
+        $("#ajaxUploadDirBtn").click(function () {
+            // 构造表单对象，构造时传参必须传入form节点对象
+            // $("#formUploadDir")取到的是form对象的一个数组，然后通过索引取到对应form中的数据
+            var formData = new FormData($("#formUploadDir")[0]);
+            // 取到cookie中csrf的值，依赖第三方jquery库
+            var token = $.cookie("csrftoken");
+            // 判断上传的目录是否为空，非空时files对应目录中第一个文件的路劲
+            // C:\fakepath\desktop.ini：浏览器为了安全，不暴露客户端的完整文件路径
+            var files = $("#uploadDir").val();
+            if(files==""){
+                alert("请选择要上传的目录或该目录为空")
+                return
+            }
+            $.ajax({
+                url: '/upload_dir/',
+                type: 'post',
+                data: formData,
+                headers: token,    // django默认阻止post请求，带上csfr_token
+                async: false,
+                cache: false,
+                // 告诉jquery不用设置Content-Type请求头
+                contentType: false,
+                // 告诉jquery不用去处理发送的数据
+                processData: false,
+                success: function (resp) {
+                    alert("OK")
+                },
+                error: function (resp) {
+                    alert('error')
+                }
+            })
+        })
+    })
+</script>
+</html>
